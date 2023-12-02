@@ -33,6 +33,30 @@ fn game_counts(game: &str) -> Color {
     c
 }
 
+fn game_power(game: &str) -> i32 {
+    let gg = game.copy();
+    let game = game.split(",").collect::<Vec<&str>>();
+
+    let mut c = Color {
+        blue: 0,
+        red: 0,
+        green: 0,
+    };
+
+    for hand in game {
+        let cards = hand.trim().split(" ").collect::<Vec<&str>>();
+        let value: i32 = cards[0].parse().unwrap();
+        match cards[1] {
+            "blue" if value > c.blue => c.blue = value,
+            "green" if value > c.green => c.green = value,
+            "red" if value > c.red => c.red = value,
+            _ => continue,
+        }
+    }
+    let n = c.blue * c.green * c.red;
+    println!("{}::{}", gg, n);
+    n
+}
 
 fn game_validator(game: &str) -> bool {
     let game = game.split(",").collect::<Vec<&str>>();
@@ -66,15 +90,19 @@ fn process_line(s: String) -> i32 {
     let mut line_power: i32 = 0;
     for game in games {
         let color_map = game_counts(game);
-        if line_counts.blue < color_map.blue {line_counts.blue = color_map.blue;};
-        if line_counts.green < color_map.green {line_counts.green = color_map.green;};
-        if line_counts.red < color_map.red {line_counts.red = color_map.red;};
+        line_counts.blue += color_map.blue;
+        line_counts.red += color_map.red;
+        line_counts.green += color_map.green;
         if !game_validator(game) {
             valid_line = false
         }
+      let p = game_power(game);
+      if p > line_power {line_power = p}
+      //println!("{}", p)
     }
 
-    line_counts.red * line_counts.green * line_counts.blue
+
+    line_power
     //if valid_line {
     //    game_num
     //} else {

@@ -4,27 +4,78 @@ use std::io::{self, BufRead};
 use std::path::Path;
 
 struct Color {
-  blue: i32,
-  red: i32,
-  green: i32,
+    blue: i32,
+    red: i32,
+    green: i32,
 }
 
 fn game_counts(game: &str) -> Color {
-  println!("{}", game);
+    let game = game.split(",").collect::<Vec<&str>>();
 
-  let c  = Color{blue: 1, red: 2 ,green: 3};
-  c
+    let mut c = Color {
+        blue: 0,
+        red: 0,
+        green: 0,
+    };
+
+    for hand in game {
+        let cards = hand.trim().split(" ").collect::<Vec<&str>>();
+        //println!("{}::{}", cards[0], cards[1]);
+        let value: i32 = cards[0].parse().unwrap();
+        match cards[1] {
+            "blue" => c.blue += value,
+            "green" => c.green += value,
+            "red" => c.red += value,
+            _ => println!("oops::{}", cards[1]),
+        }
+    }
+
+    c
 }
 
-fn process_line(s: String) {
+fn game_validator(game: &str) -> bool {
+    let game = game.split(",").collect::<Vec<&str>>();
+    let mut out = true;
+    for hand in game {
+        let cards = hand.trim().split(" ").collect::<Vec<&str>>();
+        let value: i32 = cards[0].parse().unwrap();
+        match cards[1] {
+            "blue" if value > 14 => out = false,
+            "green" if value > 13 => out = false,
+            "red" if value > 12 => out = false,
+            _ => continue,
+        }
+    }
+
+    out
+}
+
+fn process_line(s: String) -> i32 {
     let parts = s.split(":").collect::<Vec<&str>>();
     let games = parts[1].split(";").collect::<Vec<&str>>();
     let game_num: i32 = parts[0].split(" ").collect::<Vec<&str>>()[1]
         .parse()
         .unwrap();
-    println!("{}", game_num);
+    let mut line_counts = Color {
+        red: 0,
+        green: 0,
+        blue: 0,
+    };
+    let mut valid_line = true;
     for game in games {
-       game_counts(game); 
+        let color_map = game_counts(game);
+        line_counts.blue += color_map.blue;
+        line_counts.red += color_map.red;
+        line_counts.green += color_map.green;
+        if !game_validator(game) {
+          valid_line = false
+        }
+    }
+
+    if valid_line { 
+        game_num
+    } else {
+        0
     }
 }
 
@@ -38,13 +89,17 @@ where
 
 fn main() -> io::Result<()> {
     let file_path = "src/data.txt";
-
+    let mut out: i32 = 0;
     let lines = read_lines(file_path)?;
     for line in lines {
         if let Ok(l) = line {
-            process_line(l)
+            let v = process_line(l.clone());
+            out += v;
+            println!("{}:::{}", l, v)
         }
     }
+
+    println!("{}", out);
 
     Ok(())
 }

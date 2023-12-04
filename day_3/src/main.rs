@@ -93,7 +93,7 @@ where
 }
 
 fn main() -> io::Result<()> {
-    let file_path = "src/data.txt";
+    let file_path = "src/data_test.txt";
     let mut out: i32 = 0;
     let lines = read_lines(file_path)?;
     let mut grid: Vec<Vec<char>> = Vec::new();
